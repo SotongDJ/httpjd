@@ -73,8 +73,9 @@ java -jar httpjd-gui/target/httpjd-gui.jar               # desktop app
 The fully-static binary links against **musl**. One-time toolchain setup:
 
 ```sh
-sudo apt-get install -y musl-tools     # provides musl-gcc
-scripts/setup-musl.sh                   # builds static zlib + compiler wrapper
+sudo apt-get install -y musl-tools           # provides musl-gcc
+export GRAALVM_HOME="$JAVA_HOME"              # a GraalVM with native-image
+scripts/setup-musl.sh                         # builds static zlib + compiler wrapper
 export PATH="$PWD/.musl/bin:$PATH"
 ```
 
