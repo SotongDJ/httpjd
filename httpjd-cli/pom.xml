@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.sotongdj</groupId>
+        <artifactId>httpjd-parent</artifactId>
+        <version>0.2.2</version>
+    </parent>
+
+    <artifactId>httpjd-cli</artifactId>
+    <name>httpjd-cli</name>
+    <description>CLI frontend; compiles to a static native binary via GraalVM</description>
+
+    <properties>
+        <main.class>io.github.sotongdj.httpjd.cli.Cli</main.class>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.sotongdj</groupId>
+            <artifactId>httpjd-core</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>httpjd</finalName>
+        <plugins>
+            <!-- Runnable jar (core folded in) so `java -jar httpjd.jar` works as a fallback. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${main.class}</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!--
+            Build the fully-static native binary:
+                ./mvnw -Pnative -pl httpjd-cli -am package
+            Requires GraalVM (with native-image) as the build JDK, plus a musl
+            toolchain on PATH (x86_64-linux-musl-gcc) and a musl-built static zlib.
+        -->
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <imageName>httpjd</imageName>
+                            <mainClass>${main.class}</mainClass>
+                            <buildArgs>
+                                <buildArg>--static</buildArg>
+                                <buildArg>--libc=musl</buildArg>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>-O3</buildArg>
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

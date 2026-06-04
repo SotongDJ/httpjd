@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.sotongdj</groupId>
+        <artifactId>httpjd-parent</artifactId>
+        <version>0.2.2</version>
+    </parent>
+
+    <artifactId>httpjd-gui</artifactId>
+    <name>httpjd-gui</name>
+    <description>Cross-platform Swing desktop frontend; packaged per-OS with jpackage</description>
+
+    <properties>
+        <main.class>io.github.sotongdj.httpjd.gui.Gui</main.class>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.sotongdj</groupId>
+            <artifactId>httpjd-core</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>httpjd-gui</finalName>
+        <plugins>
+            <!-- Produce a single runnable jar (core is folded in) for jpackage. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${main.class}</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!--
+            Build a native OS installer/app image with jpackage:
+                ./mvnw -Pjpackage -pl httpjd-gui -am package
+            jpackage emits the right artifact for the host OS:
+              Linux   → .deb / .rpm / app-image
+              macOS   → .dmg / .pkg
+              Windows → .exe / .msi
+            Run this on each target OS to produce that platform's installer.
+        -->
+        <profile>
+            <id>jpackage</id>
+            <properties>
+                <jpackage.type>app-image</jpackage.type>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--name</argument>
+                                        <argument>httpjd</argument>
+                                        <argument>--app-version</argument>
+                                        <argument>${project.version}</argument>
+                                        <argument>--input</argument>
+                                        <argument>${project.build.directory}</argument>
+                                        <argument>--main-jar</argument>
+                                        <argument>httpjd-gui.jar</argument>
+                                        <argument>--main-class</argument>
+                                        <argument>${main.class}</argument>
+                                        <argument>--type</argument>
+                                        <argument>${jpackage.type}</argument>
+                                        <argument>--dest</argument>
+                                        <argument>${project.build.directory}/dist</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

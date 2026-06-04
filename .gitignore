@@ -1,0 +1,32 @@
+# Maven
+target/
+*.class
+dependency-reduced-pom.xml
+
+# Maven wrapper jar (downloaded on first run)
+.mvn/wrapper/maven-wrapper.jar
+
+# GraalVM native-image build artifacts
+*.build_artifacts.txt
+reports/
+
+# jpackage output
+dist/
+
+# musl toolchain built locally for static native images
+.musl/
+
+# Session reports (local only)
+_report/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
