@@ -95,9 +95,13 @@ Run on the OS you want to target; `jpackage` emits that platform's artifact
 (Linux `.deb`/`.rpm`, macOS `.dmg`/`.pkg`, Windows `.exe`/`.msi`):
 
 ```sh
-./mvnw -Pjpackage -pl httpjd-gui -am package
+./mvnw -Pjpackage -pl httpjd-gui -am -DskipTests verify
 # installers land in httpjd-gui/target/dist/
 ```
+
+The jpackage step is bound to the `verify` phase, so `package` alone skips it.
+It also needs a full JDK that ships `jmods` (jlink support) — Oracle/Temurin/
+GraalVM tarballs work; conda-forge's `openjdk` does not.
 
 Override the artifact type with `-Djpackage.type=deb` (or `rpm`, `dmg`, `pkg`,
 `exe`, `msi`, `app-image`).
