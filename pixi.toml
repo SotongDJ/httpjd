@@ -3,7 +3,7 @@ authors = ["DJ Tratoh <cld@trth.nl>"]
 channels = ["conda-forge"]
 name = "httpjd"
 platforms = ["linux-64"]
-version = "0.2.2"
+version = "0.2.3"
 
 [tasks]
 

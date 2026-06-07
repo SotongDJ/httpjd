@@ -18,7 +18,7 @@ import java.nio.file.Path;
 public final class Cli {
 
     private static final String NAME = "httpjd";
-    private static final String VERSION = "0.2.2";
+    private static final String VERSION = "0.2.3";
 
     public static void main(String[] args) {
         int port = 8080;

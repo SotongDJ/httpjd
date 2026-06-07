@@ -12,44 +12,16 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      # GraalVM serves as the single JDK: javac/tests, native-image, and a
-      # full jpackage with jmods.
-      - uses: graalvm/setup-graalvm@v1
+      - uses: actions/setup-java@v5
         with:
-          java-version: '25'
-          distribution: 'graalvm'
+          java-version: '21'
+          distribution: 'temurin'
           cache: 'maven'
-
-      - name: Install musl toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools fakeroot
-
-      - name: Build static zlib for musl
-        run: |
-          scripts/setup-musl.sh
-          echo "$PWD/.musl/bin" >> "$GITHUB_PATH"
 
       - name: Build jars and run tests
         run: ./mvnw -B package
-
-      - name: Build static native binary
-        run: |
-          ./mvnw -B -Pnative -pl httpjd-cli -am -DskipTests package
-          file httpjd-cli/target/httpjd | grep -q 'statically linked'
-
-      - name: Build .deb installer
-        run: ./mvnw -B -Pjpackage -pl httpjd-gui -am -DskipTests -Djpackage.type=deb verify
-
-      - name: Stage release assets
-        run: |
-          mkdir -p release
-          cp httpjd-cli/target/httpjd "release/httpjd-${GITHUB_REF_NAME}-linux-amd64"
-          cp httpjd-cli/target/httpjd.jar release/
-          cp httpjd-gui/target/httpjd-gui.jar release/
-          cp httpjd-gui/target/dist/*.deb release/
 
       - name: Create GitHub release
         env:
@@ -58,4 +30,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes \
-            release/*
+            httpjd-cli/target/httpjd.jar \
+            httpjd-gui/target/httpjd-gui.jar
