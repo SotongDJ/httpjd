@@ -49,10 +49,31 @@ Options:
 httpjd -d ./public -p 8080 -i
 ```
 
+## Download
+
+Prebuilt jars for each `vX.Y.Z` tag are on the
+[Releases page](https://github.com/SotongDJ/httpjd/releases) (built and
+published by CI):
+
+```sh
+java -jar httpjd.jar -d . -p 8080 -i   # CLI
+java -jar httpjd-gui.jar               # desktop app
+```
+
+The static native binary and the per-OS installers are not published —
+build them from source as described below.
+
 ## Build
 
 A Maven wrapper is included, so no Maven install is required. **GraalVM JDK 21+**
 is needed for the native binary; an ordinary JDK 21+ is fine for the jars/tests.
+
+If you use [pixi](https://pixi.sh), the included `pixi.toml` pins a
+conda-forge JDK — prefix commands with `pixi run`:
+
+```sh
+pixi run ./mvnw test
+```
 
 ### Run the tests
 
@@ -105,6 +126,20 @@ GraalVM tarballs work; conda-forge's `openjdk` does not.
 
 Override the artifact type with `-Djpackage.type=deb` (or `rpm`, `dmg`, `pkg`,
 `exe`, `msi`, `app-image`).
+
+## Releasing
+
+Releases are cut by pushing a GPG-signed version tag; CI
+(`.github/workflows/release.yml`) builds the jars, runs the tests, and
+publishes them as a GitHub release. Tags are only added when source
+changes (docs-only changes are not tagged), and the commit and tag are
+pushed together:
+
+```sh
+# bump the version in the poms, pixi.toml, and Cli.java first
+git tag -s vX.Y.Z -m "httpjd X.Y.Z"
+git push --follow-tags
+```
 
 ## License
 
