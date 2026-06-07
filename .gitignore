@@ -16,8 +16,8 @@ dist/
 # musl toolchain built locally for static native images
 .musl/
 
-# Session reports (local only)
-_report/
+# Underscore-prefixed dirs (session reports etc., local only)
+_*/
 
 # IDE
 .idea/
