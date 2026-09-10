@@ -8,4 +8,9 @@ version = "0.2.3"
 [tasks]
 
 [dependencies]
+# httpjd requires Java 21+ to compile and to run (pom `maven.compiler.release`
+# = 21; `Executors.newVirtualThreadPerTaskExecutor()` needs 21). This pin is
+# the build JDK for this env, deliberately newer than that floor. Note that
+# conda-forge `openjdk` ships without `jmods`, so it cannot run the `jpackage`
+# profile — use a Temurin/GraalVM tarball (21+) for the installers.
 openjdk = ">=25.0.2,<26"

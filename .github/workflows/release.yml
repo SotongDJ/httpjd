@@ -14,6 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # 21 is the project's minimum (see README "Requirements"); building on
+      # the floor guarantees the published jars run on any Java 21+ runtime.
       - uses: actions/setup-java@v5
         with:
           java-version: '21'
