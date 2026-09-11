@@ -48,13 +48,53 @@ matching what a collaborator already has) — not in the report.
 Read the report's `CLAUDE-SECURITY-RESULTS.md` for full exploit scenarios,
 preconditions, and recommended fixes per finding.
 
-## 3. Next step: fixes
+## 3. Fix run in progress (interrupted, needs resuming)
 
-Fixes for the 5 findings above are being generated (or were generated, if
-this handoff is stale) via the Claude Security `suggest-patches` job —
-targeted patch files delivered beside the report, for review and manual
-application. Nothing is auto-applied; the plugin never commits, pushes, or
-opens a pull request on its own.
+The Claude Security `suggest-patches` job was started for **all 5 findings**
+(F1–F5) against the report in `CLAUDE-SECURITY-20260910-165351/`. It was
+paused mid-run — nothing has been finalized, nothing is in `patches/` yet,
+and the working ground (gitignored) is still on disk for whoever resumes.
+
+- **PATCH BASE** (the commit every patch is built against): the repo's HEAD
+  at the time the run started. The report's own scan was taken one commit
+  earlier; the only difference between the two is this handoff file being
+  added, which touches none of the 5 flagged files, so the report was
+  treated as still current rather than re-scanning.
+- **Working ground:** `CLAUDE-SECURITY-20260910-165351/.claude-security-run/patch-20260911-005435/`
+  (gitignored, holds one `scratch-F<n>/` full checkout per finding plus each
+  earned `F<n>.diff`).
+- **F1 — HIGH (index-file symlink bypass in `serveDir`): generator and
+  verifier both passed, adversarial review was interrupted before returning.**
+  - Generator produced a single-file, minimal patch to
+    `httpjd-core/.../RequestHandler.java`: `serveDir()`'s index-file lookup
+    now calls `p.toRealPath()` and re-checks `startsWith(root)` — the same
+    containment check `route()` already does — before serving, falling
+    through (as if the index file didn't exist) when that fails.
+  - Verifier returned **PASS**, all three claims **CONFIDENT** (targeted:
+    one file, one hunk; no new vulnerability: the change is strictly more
+    restrictive; behaviour unchanged: legitimate in-root index files, symlinked
+    or not, still serve identically — only the exploit input is newly turned
+    away). All 31 project tests pass. The exact changed branch is `untested`
+    by the project's own suite (no existing test creates a symlinked
+    `index.html`); the verifier validated it instead with its own standalone
+    probe (not a repo test) showing the exploit blocked pre/post patch.
+  - The staged diff is saved at `.../patch-20260911-005435/F1.diff`; the scratch
+    checkout `scratch-F1/` still holds the staged (uncommitted) change.
+  - **Still needed for F1:** the adversarial pass (a fresh researcher, scoped
+    only to this diff, asked "what can an attacker do with this change that
+    they couldn't before?") — re-run it from scratch; the diff above is the
+    input. If it comes back clean, `F1.patch`/`F1.md` can be written.
+- **F2, F3, F4, F5 — not started.** No scratch workspace exists for any of
+  these yet.
+
+**To resume:** open `jobs/suggest-patches.md` in the Claude Security skill
+and continue from step 4 (adversarial pass) for F1, then run F2–F5 through
+generate → verify → adversarial → patch, one finding at a time (only one
+scratch workspace open at once — remove each before starting the next), then
+step 5 (`patches.json` + `patch_artifacts.py`) once all five are settled.
+Nothing here has touched the user's real checkout; the interrupted run is
+safe to resume or to abandon and restart clean (delete the report's
+`.claude-security-run/` working ground either way).
 
 ## 4. Standing constraints to keep honoring
 
